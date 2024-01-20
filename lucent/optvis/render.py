@@ -41,9 +41,10 @@ def render_vis(
     image_name=None,
     show_inline=False,
     fixed_image_size=None,
+    device=None
 ):
     if param_f is None:
-        param_f = lambda: param.image(128)
+        param_f = lambda: param.image(128, device=device)
     # param_f is a function that should return two things
     # params - parameters to update, which we pass to the optimizer
     # image_f - a function that returns an image as a tensor
@@ -54,7 +55,7 @@ def render_vis(
     optimizer = optimizer(params)
 
     if transforms is None:
-        transforms = transform.standard_transforms
+        transforms = transform.standard_transforms_for_device(device)
     transforms = transforms.copy()
 
     if preprocess:

@@ -230,8 +230,8 @@ def direction_neuron(layer,
     return inner
 
 
-def _torch_blur(tensor, out_c=3):
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+def _torch_blur(tensor, out_c=3, device = None):
+    device = device or torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     depth = tensor.shape[1]
     weight = np.zeros([depth, depth, out_c, out_c])
     for ch in range(depth):
@@ -244,7 +244,7 @@ def _torch_blur(tensor, out_c=3):
 
 
 @wrap_objective()
-def blur_input_each_step():
+def blur_input_each_step(device = None):
     """Minimizing this objective is equivelant to blurring input each step.
     Optimizing (-k)*blur_input_each_step() is equivelant to:
     input <- (1-k)*input + k*blur(input)
@@ -254,7 +254,7 @@ def blur_input_each_step():
     def inner(T):
         t_input = T("input")
         with torch.no_grad():
-            t_input_blurred = _torch_blur(t_input)
+            t_input_blurred = _torch_blur(t_input, device=device)
         return -0.5*torch.sum((t_input - t_input_blurred)**2)
     return inner
 

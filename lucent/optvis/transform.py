@@ -23,11 +23,10 @@ import kornia
 from kornia.geometry.transform import translate
 
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 KORNIA_VERSION = kornia.__version__
 
 
-def jitter(d):
+def jitter(d, device):
     assert d > 1, "Jitter parameter d must be more than 1, currently {}".format(d)
 
     def inner(image_t):
@@ -63,7 +62,8 @@ def random_scale(scales):
     return inner
 
 
-def random_rotate(angles, units="degrees"):
+def random_rotate(angles, units="degrees", device=None):
+    device = device or torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     def inner(image_t):
         b, _, h, w = image_t.shape
         # kornia takes degrees
@@ -130,3 +130,14 @@ standard_transforms = [
     random_rotate(list(range(-10, 11)) + 5 * [0]),
     jitter(4),
 ]
+
+def standard_transforms_for_device(device=None):
+    if device is None:
+        return standard_transforms
+    return [
+        pad(12, mode='constant', constant_value=0.5),
+        jitter(8, device),
+        random_scale([1 + (i - 5) / 50.0 for i in range(11)]),
+        random_rotate(list(range(-10, 11)) + 5 * [0], device=device),
+        jitter(4, device)
+    ]
