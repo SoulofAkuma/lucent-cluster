@@ -1,3 +1,6 @@
+# Changes
+This library contains the same code as the original Lucent library, however the torch device can be handed down from the render function so that this library works with multiple GPUs on cluster.
+
 ![](https://github.com/greentfrapp/lucent/raw/master/images/lucent_header.jpg)
 
 # Lucent
