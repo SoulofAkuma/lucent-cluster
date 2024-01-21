@@ -94,19 +94,7 @@ def render_vis(
         for i in tqdm(range(1, max(thresholds) + 1), disable=(not progress)):
             def closure():
                 optimizer.zero_grad()
-                try:
-                    model(transform_f(image_f()))
-                except RuntimeError as ex:
-                    if i == 1:
-                        # Only display the warning message
-                        # on the first iteration, no need to do that
-                        # every iteration
-                        warnings.warn(
-                            "Some layers could not be computed because the size of the "
-                            "image is not big enough. It is fine, as long as the non"
-                            "computed layers are not used in the objective function"
-                            f"(exception details: '{ex}')"
-                        )
+                model(transform_f(image_f()))
                 loss = objective_f(hook)
                 loss.backward()
                 return loss
