@@ -26,9 +26,9 @@ from kornia.geometry.transform import translate
 KORNIA_VERSION = kornia.__version__
 
 
-def jitter(d, device):
+def jitter(d, device=None):
     assert d > 1, "Jitter parameter d must be more than 1, currently {}".format(d)
-
+    device = device or torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     def inner(image_t):
         dx = np.random.choice(d)
         dy = np.random.choice(d)
@@ -122,12 +122,11 @@ def preprocess_inceptionv1():
     # Thanks to ProGamerGov for this!
     return lambda x: x * 255 - 117
 
-
 standard_transforms = [
     pad(12, mode="constant", constant_value=0.5),
     jitter(8),
     random_scale([1 + (i - 5) / 50.0 for i in range(11)]),
-    random_rotate(list(range(-10, 11)) + 5 * [0]),
+    random_rotate(list(range(-10, 11)) + 5 * [0], dev),
     jitter(4),
 ]
 
