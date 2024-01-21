@@ -32,7 +32,7 @@ def jitter(d, device=None):
     def inner(image_t):
         dx = np.random.choice(d)
         dy = np.random.choice(d)
-        return translate(image_t, torch.tensor([[dx, dy]]).float().to(device))
+        return translate(image_t.to(device), torch.tensor([[dx, dy]]).float().to(device))
 
     return inner
 
