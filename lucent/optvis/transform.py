@@ -126,7 +126,7 @@ standard_transforms = [
     pad(12, mode="constant", constant_value=0.5),
     jitter(8),
     random_scale([1 + (i - 5) / 50.0 for i in range(11)]),
-    random_rotate(list(range(-10, 11)) + 5 * [0], dev),
+    random_rotate(list(range(-10, 11)) + 5 * [0]),
     jitter(4),
 ]
 
