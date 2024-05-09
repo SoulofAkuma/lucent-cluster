@@ -37,7 +37,7 @@ def jitter(d, device=None, deterministic=False):
         dx = np.random.choice(d)
         dy = np.random.choice(d)
         return translate(image_t.to(device), torch.tensor([[dx, dy]]).float().to(device)) \
-            if deterministic else tv_translate(image_t, dx, dy, device)
+            if not deterministic else tv_translate(image_t, dx, dy, device)
 
     return inner
 
