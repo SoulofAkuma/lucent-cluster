@@ -79,7 +79,7 @@ def render_vis(
     if new_size:
         if deterministic:
             transforms.append(transform.deterministic_upscale(
-                size=new_size, mode="bilinear", align_corners=True
+                size=new_size, mode="bilinear", align_corners=True, device=device
             ))
         else:
             transforms.append(
