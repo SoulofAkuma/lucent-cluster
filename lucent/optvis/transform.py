@@ -18,7 +18,6 @@ from __future__ import absolute_import, division, print_function
 import torch
 import torch.nn.functional as F
 from torchvision.transforms import Normalize
-import torchvision.transforms.functional as VF
 import numpy as np
 import kornia
 from kornia.geometry.transform import translate
@@ -28,7 +27,7 @@ KORNIA_VERSION = kornia.__version__
 
 def tv_translate(img, dx, dy, device=None):
     _, width, height = img.shape
-    return VF.pad(img, (dx, 0, dy, 0, 0, 0), 'constant', 0)[:,:width,:height].to(device)
+    return F.pad(img, (dx, 0, dy, 0, 0, 0), 'constant', 0)[:,:width,:height].to(device)
 
 def jitter(d, device=None, deterministic=False):
     assert d > 1, "Jitter parameter d must be more than 1, currently {}".format(d)
