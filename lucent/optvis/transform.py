@@ -47,7 +47,7 @@ def pad(w, mode="reflect", constant_value=0.5):
     return inner
 
 
-def random_scale(scales, device, deterministic):
+def random_scale(scales, device=None, deterministic=False):
     def inner(image_t):
         scale = np.random.choice(scales)
         shp = image_t.shape[2:]
