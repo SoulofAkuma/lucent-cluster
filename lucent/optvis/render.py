@@ -41,7 +41,8 @@ def render_vis(
     image_name=None,
     show_inline=False,
     fixed_image_size=None,
-    device=None
+    device=None,
+    deterministic=False
 ):
     if param_f is None:
         param_f = lambda: param.image(128, device=device)
@@ -55,7 +56,7 @@ def render_vis(
     optimizer = optimizer(params)
 
     if transforms is None:
-        transforms = transform.standard_transforms_for_device(device)
+        transforms = transform.standard_transforms_for_device(device, deterministic)
     transforms = transforms.copy()
 
     if preprocess:
@@ -76,9 +77,14 @@ def render_vis(
     else:
         new_size = None
     if new_size:
-        transforms.append(
-            torch.nn.Upsample(size=new_size, mode="bilinear", align_corners=True)
-        )
+        if deterministic:
+            transform.append(transform.deterministic_upscale(
+                size=new_size, mode="bilinear", align_corners=True
+            ))
+        else:
+            transforms.append(
+                torch.nn.Upsample(size=new_size, mode="bilinear", align_corners=True)
+            )
 
     transform_f = transform.compose(transforms)
 

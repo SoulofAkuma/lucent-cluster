@@ -47,7 +47,7 @@ def pad(w, mode="reflect", constant_value=0.5):
     return inner
 
 
-def random_scale(scales):
+def random_scale(scales, device, deterministic):
     def inner(image_t):
         scale = np.random.choice(scales)
         shp = image_t.shape[2:]
@@ -57,7 +57,9 @@ def random_scale(scales):
         upsample = torch.nn.Upsample(
             size=scale_shape, mode="bilinear", align_corners=True
         )
-        return F.pad(upsample(image_t), [pad_y, pad_x] * 2)
+        return F.pad(upsample(image_t.to("cpu")).to(device), [pad_y, pad_x] * 2) if deterministic else \
+               F.pad(upsample(image_t), [pad_y, pad_x] * 2)
+
 
     return inner
 
@@ -82,6 +84,14 @@ def random_rotate(angles, units="degrees", device=None):
 
     return inner
 
+def deterministic_upscale(size, mode, align_corners, device):
+    def inner(image_t):
+        upsample = torch.nn.Upsample(
+            size=size, mode=mode, align_corners=align_corners
+        )
+        return upsample(image_t.to("cpu")).to(device)
+    
+    return inner
 
 def compose(transforms):
     def inner(x):
@@ -130,13 +140,13 @@ standard_transforms = [
     jitter(4),
 ]
 
-def standard_transforms_for_device(device=None):
+def standard_transforms_for_device(device=None, deterministic=False):
     if device is None:
         return standard_transforms
     return [
         pad(12, mode='constant', constant_value=0.5),
         jitter(8, device),
-        random_scale([1 + (i - 5) / 50.0 for i in range(11)]),
+        random_scale([1 + (i - 5) / 50.0 for i in range(11)], device, deterministic),
         random_rotate(list(range(-10, 11)) + 5 * [0], device=device),
         jitter(4, device)
     ]

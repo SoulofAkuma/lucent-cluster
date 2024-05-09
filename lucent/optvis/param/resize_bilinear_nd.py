@@ -61,7 +61,7 @@ def collapse_shape(shape, a, b):
     return [product(shape[:a])] + shape[a:b] + [product(shape[b:])]
 
 
-def resize_bilinear_nd(t, target_shape):
+def resize_bilinear_nd(t, target_shape, device=None, deterministic=False):
     """Bilinear resizes a tensor t to have shape target_shape.
     This function bilinearly resizes a n-dimensional tensor by iteratively
     applying tf.image.resize_bilinear (which can only resize 2 dimensions).
@@ -97,6 +97,8 @@ def resize_bilinear_nd(t, target_shape):
 
         # We can then reshape and use torch.nn.Upsample() on the
         # outer two dimensions.
+        if deterministic:
+            t = t.to("cpu")
         t_ = t.view(shape_)
         # transpose [0, 1, 2, 3] to [0, 3, 1, 2]
         t_ = torch.transpose(t_, 1, 3)
@@ -112,4 +114,4 @@ def resize_bilinear_nd(t, target_shape):
         shape = new_shape
         d += 2
 
-    return t
+    return t.to(device) if deterministic else t

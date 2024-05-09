@@ -24,7 +24,7 @@ import torch.nn.functional as F
 from lucent.optvis.param.resize_bilinear_nd import resize_bilinear_nd
 
 
-def lowres_tensor(shape, underlying_shape, offset=None, sd=0.01, device = None):
+def lowres_tensor(shape, underlying_shape, offset=None, sd=0.01, device = None, deterministic=False):
     """Produces a tensor paramaterized by a interpolated lower resolution tensor.
     This is like what is done in a laplacian pyramid, but a bit more general. It
     can be a powerful way to describe images.
@@ -56,7 +56,7 @@ def lowres_tensor(shape, underlying_shape, offset=None, sd=0.01, device = None):
             offset[n] = int(offset[n])
             
     def inner():
-        t = resize_bilinear_nd(underlying_t, shape)
+        t = resize_bilinear_nd(underlying_t, shape, device, deterministic)
         if offset is not None:
             # Actually apply offset by padding and then cropping off the excess.
             t = F.pad(t, offset, "reflect")
