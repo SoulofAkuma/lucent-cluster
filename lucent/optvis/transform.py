@@ -26,7 +26,7 @@ from kornia.geometry.transform import translate
 KORNIA_VERSION = kornia.__version__
 
 def tv_translate(img, dx, dy, device=None):
-    _, width, height = img.shape
+    width, height = img.shape[-2], img.shape[-1]
     return F.pad(img, (dx, 0, dy, 0, 0, 0), 'constant', 0)[:,:width,:height].to(device)
 
 def jitter(d, device=None, deterministic=False):
@@ -68,7 +68,7 @@ def random_scale(scales, device=None, deterministic=False):
     return inner
 
 
-def random_rotate(angles, units="degrees", device=None):
+def random_rotate(angles, units="degrees", device=None, deterministic=False):
     device = device or torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     def inner(image_t):
         b, _, h, w = image_t.shape
@@ -82,9 +82,14 @@ def random_rotate(angles, units="degrees", device=None):
         center = torch.ones(b, 2)
         center[..., 0] = (image_t.shape[3] - 1) / 2
         center[..., 1] = (image_t.shape[2] - 1) / 2
-        M = kornia.get_rotation_matrix2d(center, angle, scale).to(device)
-        rotated_image = kornia.warp_affine(image_t.float(), M, dsize=(h, w))
-        return rotated_image
+        if deterministic:
+            M = kornia.get_rotation_matrix2d(center, angle, scale)
+            rotated_image = kornia.warp_affine(image_t.float().cpu(), M, dsize=(h, w))
+            return rotated_image.to(device)
+        else:
+            M = kornia.get_rotation_matrix2d(center, angle, scale).to(device)
+            rotated_image = kornia.warp_affine(image_t.float(), M, dsize=(h, w))
+            return rotated_image
 
     return inner
 
@@ -149,8 +154,8 @@ def standard_transforms_for_device(device=None, deterministic=False):
         return standard_transforms
     return [
         pad(12, mode='constant', constant_value=0.5),
-        jitter(8, device),
+        jitter(8, device, deterministic),
         random_scale([1 + (i - 5) / 50.0 for i in range(11)], device, deterministic),
-        random_rotate(list(range(-10, 11)) + 5 * [0], device=device),
-        jitter(4, device)
+        random_rotate(list(range(-10, 11)) + 5 * [0], device=device, deterministic=deterministic),
+        jitter(4, device, deterministic)
     ]
