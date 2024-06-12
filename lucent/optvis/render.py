@@ -44,7 +44,8 @@ def render_vis(
     device=None,
     deterministic=False,
     post_grad_f=None,
-    skip_size_transform=False
+    skip_size_transform=False,
+    images_as_tensor=False
 ):
     if param_f is None:
         param_f = lambda: param.image(128, device=device)
@@ -116,17 +117,17 @@ def render_vis(
                 
             optimizer.step(closure)
             if i in thresholds:
-                image = tensor_to_img_array(image_f())
+                image = image_f()
                 if verbose:
                     print("Loss at step {}: {:.3f}".format(i, objective_f(hook)))
                     if show_inline:
-                        show(image)
-                images.append(image)
+                        show(tensor_to_img_array(image))
+                images.append(image if images_as_tensor else tensor_to_img_array(image))
     except KeyboardInterrupt:
         print("Interrupted optimization at step {:d}.".format(i))
         if verbose:
             print("Loss at step {}: {:.3f}".format(i, objective_f(hook)))
-        images.append(tensor_to_img_array(image_f()))
+        images.append(image_f() if images_as_tensor else tensor_to_img_array(image_f()))
 
     if save_image:
         export(image_f(), image_name)
