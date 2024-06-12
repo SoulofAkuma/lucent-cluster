@@ -42,7 +42,9 @@ def render_vis(
     show_inline=False,
     fixed_image_size=None,
     device=None,
-    deterministic=False
+    deterministic=False,
+    post_grad_f=None,
+    skip_size_transform=False
 ):
     if param_f is None:
         param_f = lambda: param.image(128, device=device)
@@ -76,7 +78,7 @@ def render_vis(
         new_size = 224
     else:
         new_size = None
-    if new_size:
+    if new_size and not skip_size_transform:
         if deterministic:
             transforms.append(transform.deterministic_upscale(
                 size=new_size, mode="bilinear", align_corners=True, device=device
@@ -100,9 +102,16 @@ def render_vis(
         for i in tqdm(range(1, max(thresholds) + 1), disable=(not progress)):
             def closure():
                 optimizer.zero_grad()
-                model(transform_f(image_f()))
+
+                current_images = image_f()
+                current_transformed_images = transform_f(current_images)
+                model(current_transformed_images)
+
                 loss = objective_f(hook)
                 loss.backward()
+                if post_grad_f is not None:
+                    post_grad_f(current_images, current_transformed_images)
+
                 return loss
                 
             optimizer.step(closure)
